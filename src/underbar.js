@@ -179,7 +179,16 @@ var _ = {};
   //   var sum = _.reduce(numbers, function(total, number){
   //     return total + number;
   //   }, 0); // should be 6
+
+
   _.reduce = function(collection, iterator, accumulator) {
+    var runningtotal = (accumulator === undefined ? collection[0] : accumulator);
+
+    _.each(collection, function (item) {
+       runningtotal = iterator(runningtotal, item);
+    });
+
+    return runningtotal;
   };
 
   // Determine if the array or object contains a given value (using `===`).
@@ -198,14 +207,41 @@ var _ = {};
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
     // TIP: Try re-using reduce() here.
+
+    return _.reduce(collection, function(truthTestResult, item) {
+      if (!truthTestResult) {
+        return false; 
+      }
+
+      else if (iterator ? iterator(item) : item) {
+          return true; 
+        }
+
+    else {
+      return false
+    }
+
+    }, true);
+
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
-  };
+    var anti_iterator = function (item) {
+      if(iterator ? iterator(item) : item) {
+        return false;
+      }
 
+      else {
+        return true;
+      }
+    }
+
+    return (_.every(collection, anti_iterator) === true ? false : true);
+
+  };
 
   /**
    * OBJECTS
@@ -226,11 +262,31 @@ var _ = {};
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
+
+    for (var i = 1; i < arguments.length; i ++) {
+      for (var k in arguments[i]) {
+        obj[k] = arguments[i][k];
+      }
+    }
+
+    return obj;
+
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+
+    for (var i = 1; i < arguments.length; i ++) {
+      for (var k in arguments[i]) {
+        if( obj[k] === undefined ) {
+          obj[k] = arguments[i][k]
+        }
+      }
+    }
+
+    return obj;
+
   };
 
 
