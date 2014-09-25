@@ -310,6 +310,7 @@ var _ = {};
     // TIP: We'll return a new function that delegates to the old one, but only
     // if it hasn't been called before.
     return function() {
+      
       if (!alreadyCalled) {
         // TIP: .apply(this, arguments) is the standard way to pass on all of the
         // infromation from one function call to another.
@@ -328,6 +329,21 @@ var _ = {};
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+
+    var usedArgs= [];
+    var usedResults = [];
+    var result;
+
+
+    return function() {
+      if (!(arguments[0] in usedArgs)) {
+        result = func.apply(this, arguments);
+        usedArgs.push(arguments[0]);
+        usedResults.push(result);
+      }
+  
+      return usedResults[_.indexOf(usedArgs,arguments[0])];
+    };
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -337,6 +353,13 @@ var _ = {};
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+
+     var args = Array.prototype.slice.call(arguments,2);
+
+      return setTimeout(function(){
+          return func.apply(null, args);
+      }, wait);
+
   };
 
 
@@ -351,6 +374,23 @@ var _ = {};
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
+
+    var arr = array.slice();
+    var newArray = [];
+    var selectedNum;
+
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min)) + min;
+    }
+
+    for (var i = 0; i < array.length ; i ++){
+      selectedNum  = getRandomInt(0, arr.length);
+      newArray[i] = arr[selectedNum];
+      arr.splice(selectedNum, 1);
+    }
+
+    return newArray;
+
   };
 
 
