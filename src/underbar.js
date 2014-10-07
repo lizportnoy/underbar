@@ -312,26 +312,34 @@ var _ = {};
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+    var argumentStorage = []; // creates storage for previously used args
+    var resultStorage = []; // corresponding storage for results, which will have the same index no.
 
-    var argStorage = [];
-    var argResults = [];
-
-    return function (arg1) {
-
-      if (_.contains(argStorage, arg1)){
-        return argResults[_.indexOf(argStorage, arg1)];
-      } 
-
-      else {
-        var res = func.apply(this, arguments);
-        argResults.push(res);
-        argStorage.push(arg1);
-        return res;
+    var indexof = function (collection,target) {
+      var index = -1; // suggests not present
+      var indexfound = false;
+      for (var i = 0; i <collection.length; i++) {
+        if (collection[i] === target && indexfound === false) {
+          index = i;
+          indexfound = true;
+        }
       }
-
+      return index;
     }
 
-    // check if it has computed the result for a given argument and return that value instead
+    return function (arg) {
+      if (indexof(argumentStorage,arg) !== -1) { // checks if argument has been used before
+        return resultStorage[indexof(argumentStorage,arg)]; // if yes, pulls result from storage with corresponding index no.
+      } 
+      else {
+        var result = func.apply(this,arguments); // if hasn't been used, calls function with new argument
+        argumentStorage.push(arg); // stores argument and result in arrays with corresponding index nos
+        resultStorage.push(result);
+        return result;
+      }
+
+    };
+
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -522,28 +530,48 @@ var _ = {};
   // during a given window of time.
   //
   // See the Underbar readme for details.
-  _.throttle = function(func, wait) {
 
-    var result;
-    var remainingWait = 0;
+    _.throttle = function(func, wait) {
 
+      var remainingWait = 0;
+      var lastCall = 0;
+      var callPending = true;
+      var result;
 
-    return function () {
-
-      if (remainingWait <= 0 ) {
-          result = func.apply(this, arguments);
-        } 
-
-      else {
-        result = alert('Function availability will return shortly')
+      var calcRemaining = function () {
+        return wait - (Date.now() - lastCall);
       }
 
-      return result;
-      remainingWait = wait;
-    }
+      var executefun = function () {
+          callPending = false;
+          lastCall = Date.now();
+          remainingWait = calcRemaining();
+          result = func.apply(this,arguments);
+      }
 
-    setTimeout (function () { remainingWait = 0}, wait);
+      return function () {
 
-  };
+        if (remainingWait <= 0 && callPending === true) {
+          executefun();
+        }
+
+        else if (remainingWait > 0 && callPending === false) {
+          callPending = true;
+          remainingWait = calcRemaining();
+          setTimeout(function () { executefun()}, remainingWait);
+        } 
+
+        else {
+          console.log('Function not currently available, please wait')
+        }
+
+        return result; 
+
+      };
+
+      
+
+    };
+ 
 
 }).call(this);
